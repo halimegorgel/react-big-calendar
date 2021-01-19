@@ -96,12 +96,12 @@ class WeekWrapper extends React.Component {
     // Make sure to maintain the time of the start date while moving it to the new slot
     let start = dates.merge(
       metrics.getDateForSlot(getSlotAtX(rowBox, x, false, metrics.slots)),
-      accessors.start(event)
+      new Date(accessors.start(event))
     )
 
     let end = dates.add(
       start,
-      dates.diff(accessors.start(event), accessors.end(event), 'minutes'),
+      dates.diff(new Date(accessors.start(event)), new Date(accessors.end(event)), 'minutes'),
       'minutes'
     )
 
