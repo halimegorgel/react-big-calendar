@@ -342,8 +342,8 @@ var EventCell =
       delete props.resizable
       var title = accessors.title(event)
       var tooltip = accessors.tooltip(event)
-      var end = accessors.end(event)
-      var start = accessors.start(event)
+      var end = new Date(accessors.end(event))
+      var start = new Date(accessors.start(event))
       var allDay = accessors.allDay(event)
       var showAsAllDay =
         isAllDay || allDay || diff(start, ceil(end, 'day'), 'day') > 1
@@ -587,8 +587,16 @@ var Popup =
             components: components,
             onDoubleClick: onDoubleClick,
             onKeyPress: onKeyPress,
-            continuesPrior: lt(accessors.end(event), slotStart, 'day'),
-            continuesAfter: gte(accessors.start(event), slotEnd, 'day'),
+            continuesPrior: lt(
+              new Date(accessors.end(event)),
+              slotStart,
+              'day'
+            ),
+            continuesAfter: gte(
+              new Date(accessors.start(event)),
+              slotEnd,
+              'day'
+            ),
             slotStart: slotStart,
             slotEnd: slotEnd,
             selected: isSelected(event, selected),
@@ -1595,8 +1603,8 @@ function eventSegments(event, range, accessors) {
     last = _endOfRange.last
 
   var slots = diff(first, last, 'day')
-  var start = max(startOf(accessors.start(event), 'day'), first)
-  var end = min(ceil(accessors.end(event), 'day'), last)
+  var start = max(startOf(new Date(accessors.start(event)), 'day'), first)
+  var end = min(ceil(new Date(accessors.end(event)), 'day'), last)
   var padding = findIndex(range, function(x) {
     return eq(x, start, 'day')
   })
@@ -1647,8 +1655,8 @@ function eventLevels(rowSegments, limit) {
   }
 }
 function inRange(e, start, end, accessors) {
-  var eStart = startOf(accessors.start(e), 'day')
-  var eEnd = accessors.end(e)
+  var eStart = startOf(new Date(accessors.start(e)), 'day')
+  var eEnd = new Date(accessors.end(e))
   var startsBeforeEnd = lte(eStart, end, 'day') // when the event is zero duration we need to handle a bit differently
 
   var endsAfterStart = !eq(eStart, eEnd, 'minutes')
@@ -1663,23 +1671,23 @@ function segsOverlap(seg, otherSegs) {
 }
 function sortEvents(evtA, evtB, accessors) {
   var startSort =
-    +startOf(accessors.start(evtA), 'day') -
-    +startOf(accessors.start(evtB), 'day')
+    +startOf(new Date(accessors.start(evtA)), 'day') -
+    +startOf(new Date(accessors.start(evtB)), 'day')
   var durA = diff(
-    accessors.start(evtA),
-    ceil(accessors.end(evtA), 'day'),
+    new Date(accessors.start(evtA)),
+    ceil(new Date(accessors.end(evtA)), 'day'),
     'day'
   )
   var durB = diff(
-    accessors.start(evtB),
-    ceil(accessors.end(evtB), 'day'),
+    new Date(accessors.start(evtB)),
+    ceil(new Date(accessors.end(evtB)), 'day'),
     'day'
   )
   return (
     startSort || // sort by start Day first
     Math.max(durB, 1) - Math.max(durA, 1) || // events spanning multiple days go first
     !!accessors.allDay(evtB) - !!accessors.allDay(evtA) || // then allDay single day events
-    +accessors.start(evtA) - +accessors.start(evtB)
+    +new Date(accessors.start(evtA)) - +new Date(accessors.start(evtB))
   ) // then sort by start time
 }
 
@@ -1889,11 +1897,15 @@ function getSlotMetrics() {
           })
       },
       continuesPrior: function continuesPrior(event) {
-        return lt(accessors.start(event), first, 'day')
+        return lt(new Date(accessors.start(event)), first, 'day')
       },
       continuesAfter: function continuesAfter(event) {
-        var eventEnd = accessors.end(event)
-        var singleDayDuration = eq(accessors.start(event), eventEnd, 'minutes')
+        var eventEnd = new Date(accessors.end(event))
+        var singleDayDuration = eq(
+          new Date(accessors.start(event)),
+          eventEnd,
+          'minutes'
+        )
         return singleDayDuration
           ? gte(eventEnd, last, 'minutes')
           : gt(eventEnd, last, 'minutes')
@@ -2875,8 +2887,8 @@ var Event =
         slotMetrics = _ref.slotMetrics
 
       var _slotMetrics$getRange = slotMetrics.getRange(
-          accessors.start(data),
-          accessors.end(data)
+          new Date(accessors.start(data)),
+          new Date(accessors.end(data))
         ),
         start = _slotMetrics$getRange.start,
         startDate = _slotMetrics$getRange.startDate,
@@ -3319,8 +3331,8 @@ function TimeGridEvent(props) {
     EventWrapper = _props$components.eventWrapper
   var title = accessors.title(event)
   var tooltip = accessors.tooltip(event)
-  var end = accessors.end(event)
-  var start = accessors.start(event)
+  var end = new Date(accessors.end(event))
+  var start = new Date(accessors.start(event))
   var userProps = getters.eventProp(event, start, end, selected)
   var height = style.height,
     top = style.top,
@@ -3441,8 +3453,8 @@ var DayColumn =
         return styledEvents.map(function(_ref, idx) {
           var event = _ref.event,
             style = _ref.style
-          var end = accessors.end(event)
-          var start = accessors.start(event)
+          var end = new Date(accessors.end(event))
+          var start = new Date(accessors.start(event))
           var format = 'eventTimeRangeFormat'
           var label
           var startsBeforeDay = slotMetrics.startsBeforeDay(start)
@@ -4511,8 +4523,8 @@ var TimeGrid =
           ) {
             return inRange$1(
               date,
-              accessors.start(event),
-              accessors.end(event),
+              new Date(accessors.start(event)),
+              new Date(accessors.end(event)),
               'day'
             )
           })
@@ -4561,8 +4573,8 @@ var TimeGrid =
         rangeEvents = []
       events.forEach(function(event) {
         if (inRange(event, start, end, accessors)) {
-          var eStart = accessors.start(event),
-            eEnd = accessors.end(event)
+          var eStart = new Date(accessors.start(event)),
+            eEnd = new Date(accessors.end(event))
 
           if (
             accessors.allDay(event) ||
@@ -4951,8 +4963,8 @@ function Agenda(_ref) {
     })
     return events.map(function(event, idx) {
       var title = accessors.title(event)
-      var end = accessors.end(event)
-      var start = accessors.start(event)
+      var end = new Date(accessors.end(event))
+      var start = new Date(accessors.start(event))
       var userProps = getters.eventProp(
         event,
         start,
@@ -5011,8 +5023,8 @@ function Agenda(_ref) {
     var labelClass = '',
       TimeComponent = components.time,
       label = localizer.messages.allDay
-    var end = accessors.end(event)
-    var start = accessors.start(event)
+    var end = new Date(accessors.end(event))
+    var start = new Date(accessors.start(event))
 
     if (!accessors.allDay(event)) {
       if (eq(start, end)) {
@@ -5080,7 +5092,7 @@ function Agenda(_ref) {
     return inRange(event, date, end, accessors)
   })
   events.sort(function(a, b) {
-    return +accessors.start(a) - +accessors.start(b)
+    return +new Date(accessors.start(a)) - +new Date(accessors.start(b))
   })
   return React.createElement(
     'div',
@@ -6136,36 +6148,36 @@ Calendar.propTypes =
         selected: PropTypes.object,
 
         /**
-   * An array of built-in view names to allow the calendar to display.
-   * accepts either an array of builtin view names,
-   *
-   * ```jsx
-   * views={['month', 'day', 'agenda']}
-   * ```
-   * or an object hash of the view name and the component (or boolean for builtin).
-   *
-   * ```jsx
-   * views={{
-   *   month: true,
-   *   week: false,
-   *   myweek: WorkWeekViewComponent,
-   * }}
-   * ```
-   *
-   * Custom views can be any React component, that implements the following
-   * interface:
-   *
-   * ```js
-   * interface View {
-   *   static title(date: Date, { formats: DateFormat[], culture: string?, ...props }): string
-   *   static navigate(date: Date, action: 'PREV' | 'NEXT' | 'DATE'): Date
-   * }
-   * ```
-   *
-   * @type Views ('month'|'week'|'work_week'|'day'|'agenda')
-   * @View
-   ['month', 'week', 'day', 'agenda']
-   */
+       * An array of built-in view names to allow the calendar to display.
+       * accepts either an array of builtin view names,
+       *
+       * ```jsx
+       * views={['month', 'day', 'agenda']}
+       * ```
+       * or an object hash of the view name and the component (or boolean for builtin).
+       *
+       * ```jsx
+       * views={{
+       *   month: true,
+       *   week: false,
+       *   myweek: WorkWeekViewComponent,
+       * }}
+       * ```
+       *
+       * Custom views can be any React component, that implements the following
+       * interface:
+       *
+       * ```js
+       * interface View {
+       *   static title(date: Date, { formats: DateFormat[], culture: string?, ...props }): string
+       *   static navigate(date: Date, action: 'PREV' | 'NEXT' | 'DATE'): Date
+       * }
+       * ```
+       *
+       * @type Views ('month'|'week'|'work_week'|'day'|'agenda')
+       * @View
+       ['month', 'week', 'day', 'agenda']
+       */
         views: views$1,
 
         /**
